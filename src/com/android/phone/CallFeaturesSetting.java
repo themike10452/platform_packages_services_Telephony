@@ -37,6 +37,7 @@ import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceScreen;
+import android.preference.SwitchPreference;
 import android.provider.ContactsContract.CommonDataKinds;
 import android.provider.Settings;
 import android.telecom.PhoneAccountHandle;
@@ -164,6 +165,8 @@ public class CallFeaturesSetting extends PreferenceActivity
     private static final String CALL_FORWARDING_KEY = "call_forwarding_key";
     private static final String ADDITIONAL_GSM_SETTINGS_KEY = "additional_gsm_call_settings_key";
 
+    private static final String BUTTON_SMART_CALL = "button_smart_dialer";
+
     private static final String PHONE_ACCOUNT_SETTINGS_KEY =
             "phone_account_settings_preference_screen";
 
@@ -187,6 +190,9 @@ public class CallFeaturesSetting extends PreferenceActivity
 
     private SubscriptionInfoHelper mSubscriptionInfoHelper;
 
+    // Smart Calls
+    private static final String BUTTON_SMART_DIALER_KEY = "button_smart_dialer";
+
     private EditPhoneNumberPreference mSubMenuVoicemailSettings;
 
     /** Whether dialpad plays DTMF tone or not. */
@@ -200,6 +206,7 @@ public class CallFeaturesSetting extends PreferenceActivity
     private VoicemailRingtonePreference mVoicemailNotificationRingtone;
     private CheckBoxPreference mVoicemailNotificationVibrate;
     private CheckBoxPreference mEnableVideoCalling;
+    private SwitchPreference mSmartCall;
 
     /**
      * Results of reading forwarding settings
@@ -381,6 +388,10 @@ public class CallFeaturesSetting extends PreferenceActivity
                 dialog.getActionBar().setDisplayHomeAsUpEnabled(false);
             }
             return false;
+        } else if (preference == mSmartCall){
+            Settings.System.putInt(getContentResolver(), Settings.System.SMART_PHONE_CALLER,
+                    mSmartCall.isChecked() ? 1 : 0);
+                    return true;
         }
         return false;
     }
@@ -1320,6 +1331,13 @@ public class CallFeaturesSetting extends PreferenceActivity
 
         mVoicemailNotificationVibrate.setChecked(
                 VoicemailNotificationSettingsUtil.isVibrationEnabled(mPhone));
+
+        mSmartCall = (SwitchPreference) findPreference(BUTTON_SMART_DIALER_KEY);
+        if (mSmartCall != null) {
+            int mSmartCallCheck = Settings.System.getInt(getContentResolver(),
+                    Settings.System.SMART_PHONE_CALLER, 0);
+            mSmartCall.setChecked(mSmartCallCheck != 0);
+        }
 
         if (ImsManager.isVtEnabledByPlatform(mPhone.getContext()) && ENABLE_VT_FLAG) {
             boolean currentValue =
